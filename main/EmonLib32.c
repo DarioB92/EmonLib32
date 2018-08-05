@@ -133,3 +133,25 @@ void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double
   printf("Irms_pure: %f \n", *Irms/ICAL);
   //printf("powerFactor: %f \n", *powerFactor);*/
 }
+
+void calcI(unsigned int samples,double* offsetI,esp_adc_cal_characteristics_t *adc_chars,double*Irms)
+{
+    unsigned int sampleI;
+    double filteredI;
+    double sqI;
+    double sumI=0;
+
+    for(unsigned int n=0;n<samples; n++)
+    {
+        esp_adc_cal_get_voltage(inPinI,adc_chars,&sampleI);  //Read in voltage signal in mV
+
+        //Apply low pass filter
+        *offsetI = (*offsetI + (sampleI-*offsetI)/4096);
+        filteredI = sampleI - *offsetI;
+        //RMS method
+        sqI = filteredI * filteredI;                //1) square current values
+        sumI += sqI;                                //2) sum
+    }
+
+    *Irms = ICAL * sqrt(sumI / samples);
+}

@@ -28,8 +28,6 @@
 #define ICAL 0.03
 #define PHASECAL 1
 
-static esp_adc_cal_characteristics_t *adc_chars; //pointer needed to characterize ADC
-
-
 //function prototypes
 void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double* offsetI,esp_adc_cal_characteristics_t *adc_chars,double* realPower,double*apparentPower,double*powerFactor,double*Vrms,double*Irms);
+void calcI(unsigned int samples,double* offsetI,esp_adc_cal_characteristics_t *adc_chars,double*Irms);

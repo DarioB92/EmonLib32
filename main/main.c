@@ -10,6 +10,22 @@
 // Proboscide99 10/08/2016 - Added ADMUX settings for ATmega1284 e 1284P (644 / 644P also, but not tested) in readVcc function
 
 //includes
+#include <stdio.h>
+#include <stdlib.h>
+#include "esp_system.h"
+#include "esp_event_loop.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+#include "freertos/event_groups.h"
+
+#include "esp_log.h"
+#include "driver/gpio.h"
+#include "esp_adc_cal.h"
+
+#include <driver/adc.h>
 
 #include "EmonLib32.h"
 
@@ -69,13 +85,13 @@ void app_main ()
     while(1){
         calcVI(1480,2000,&offsetV,&offsetI,adc_chars,&realPower,&apparentPower,&powerFactor,&Vrms,&Irms); //samples,timeout
 
-        printf("realPower: %f \t", realPower);
-        //printf("apparentPower: %f \t", apparentPower);
-        printf("Vrms: %f \t", Vrms);
-        printf("Irms: %f \t", Irms);
+        printf("realPower: %.3f \t", realPower);
+        printf("apparentPower: %.3f \t", apparentPower);
+        printf("Vrms: %.3f \t", Vrms);
+        printf("Irms: %.3f \t", Irms);
         printf("Vrms_pure: %f \t", Vrms/VCAL);
-        printf("Irms_pure: %f \n", Irms/ICAL);
-        //printf("powerFactor: %f \n", powerFactor);
+        printf("Irms_pure: %f \t", Irms/ICAL);
+        printf("powerFactor: %.3f \n", powerFactor);
 
         vTaskDelay(1000 / portTICK_RATE_MS);    //repeat every 1 seconds.
     }
