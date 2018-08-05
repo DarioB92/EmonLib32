@@ -1,4 +1,3 @@
-//includes
 #include <stdio.h>
 #include <stdlib.h>
 #include "esp_system.h"
@@ -33,4 +32,4 @@ static esp_adc_cal_characteristics_t *adc_chars; //pointer needed to characteriz
 
 
 //function prototypes
-void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double* offsetI,double* realPower,double*apparentPower,double*powerFactor,double*Vrms,double*Irms);
+void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double* offsetI,esp_adc_cal_characteristics_t *adc_chars,double* realPower,double*apparentPower,double*powerFactor,double*Vrms,double*Irms);

@@ -10,26 +10,12 @@
 // Proboscide99 10/08/2016 - Added ADMUX settings for ATmega1284 e 1284P (644 / 644P also, but not tested) in readVcc function
 
 //includes
-#include <stdio.h>
-#include <stdlib.h>
-#include "esp_system.h"
-#include "esp_event_loop.h"
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-#include "freertos/event_groups.h"
-
-#include "esp_log.h"
-#include "driver/gpio.h"
-#include "esp_adc_cal.h"
-
-#include <driver/adc.h>
-#include <math.h>
 
 #include "EmonLib32.h"
 
+static esp_adc_cal_characteristics_t *adc_chars; //pointer needed to characterize ADC
+
+//Variables to share with all tasks
 double realPower,apparentPower,powerFactor,Vrms,Irms;
 double offsetV=1620;
 double offsetI=1620;
@@ -79,8 +65,9 @@ void app_main ()
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_11db, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
     print_char_val_type(val_type);
 
+
     while(1){
-        calcVI(1480,2000,&offsetV,&offsetI,&realPower,&apparentPower,&powerFactor,&Vrms,&Irms); //samples,timeout
+        calcVI(1480,2000,&offsetV,&offsetI,adc_chars,&realPower,&apparentPower,&powerFactor,&Vrms,&Irms); //samples,timeout
 
         printf("realPower: %f \t", realPower);
         //printf("apparentPower: %f \t", apparentPower);

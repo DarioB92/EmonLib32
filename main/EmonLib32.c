@@ -6,23 +6,23 @@
 // From a sample window of the mains AC voltage and current.
 // The Sample window length is defined by the number of half wavelengths or crossings we choose to measure.
 //--------------------------------------------------------------------------------------
-void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double* offsetI,double* realPower,double*apparentPower,double*powerFactor,double*Vrms,double*Irms)
+void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double* offsetI,esp_adc_cal_characteristics_t *adc_chars,double* realPower,double*apparentPower,double*powerFactor,double*Vrms,double*Irms)
 {
   unsigned int crossCount = 0;                             //Used to measure number of times threshold is crossed.
   unsigned int numberOfSamples = 0;                        //This is now incremented
   unsigned int startV=0;
-  unsigned int sampleV=0;
-  unsigned int sampleI=0;
-  double lastFilteredV=0;
+  unsigned int sampleV;
+  unsigned int sampleI;
+  double lastFilteredV;
   double filteredV=0;
-  double filteredI=0;
-  double sqV=0;
+  double filteredI;
+  double sqV;
   double sumV=0;
-  double sqI=0;
+  double sqI;
   double sumI=0;
-  double instP=0;
+  double instP;
   double sumP=0;
-  double phaseShiftedV=0;
+  double phaseShiftedV;
   bool lastVCross, checkVCross=false;
 
   //-------------------------------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double
 
   while(st==false)                                   //the while loop...
   {
+    //startV = esp_adc_cal_raw_to_voltage(adc1_get_raw(inPinV),adc_chars);
     esp_adc_cal_get_voltage(inPinV,adc_chars,&startV);
     if ((startV < (ADC_COUNTS*0.55)) && (startV > (ADC_COUNTS*0.45))) st=true;  //check its within range
     if ((esp_log_timestamp()-start)>timeout) st = true;
@@ -52,8 +53,11 @@ void calcVI(unsigned int crossings, unsigned int timeout,double* offsetV, double
     //-----------------------------------------------------------------------------
     // A) Read in raw voltage and current samples
     //-----------------------------------------------------------------------------
+    
     esp_adc_cal_get_voltage(inPinV,adc_chars,&sampleV);  //Read in voltage signal in mV
     esp_adc_cal_get_voltage(inPinI,adc_chars,&sampleI);  //Read in voltage signal in mV
+    //sampleV = esp_adc_cal_raw_to_voltage(adc1_get_raw(inPinV),adc_chars);
+    //sampleI=esp_adc_cal_raw_to_voltage(adc1_get_raw(inPinI),adc_chars);
     //-----------------------------------------------------------------------------
     // B) Apply digital low pass filters to extract the 2.5 V or 1.65 V dc offset,
     //     then subtract this - signal is now centred on 0 counts.
