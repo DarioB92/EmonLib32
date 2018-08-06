@@ -1,3 +1,35 @@
+/*EmonLib32 - Library modified to work with ESP32
+
+    Modified by: Dario Bocchino
+
+esp_adc_cal_get_voltage will return voltage in mV, made of offset and ac voltage. 
+Will not return a value between 0 and 4096 (12bit).
+
+About ADC and precision:
+Sensor accuracy is rated 1%
+To reduce ADC error the device on startup will check for calibrated values (my device 
+was not lucky), if they are not burned will use DEFAULT_VREF.
+Then will calculate a characteristic curve to reduce Vref drift, and will  use 
+function esp_adc_cal_raw_to_voltage to use it. 
+Channel's attenuation was selected to stay between recommended voltages for adc
+(150 to 2450mV for 11db).
+
+Possible improvements:
+Use adc2_vref_to_gpio() to obtain a better estimate
+
+>>>WILL NOT WORK WITH ARDUINO
+
+Original version:
+  Emon.cpp - Library for openenergymonitor
+  Created by Trystan Lea, April 27 2010
+  GNU GPL
+  modified to use up to 12 bits ADC resolution (ex. Arduino Due)
+  by boredman@boredomprojects.net 26.12.2013
+  Low Pass filter for offset removal replaces HP filter 1/1/2015 - RW
+*/
+
+// Proboscide99 10/08/2016 - Added ADMUX settings for ATmega1284 e 1284P (644 / 644P also, but not tested) in readVcc function
+
 #include "EmonLib32.h"
 
 //--------------------------------------------------------------------------------------

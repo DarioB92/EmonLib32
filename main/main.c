@@ -1,4 +1,25 @@
-/*
+/*EmonLib32 - Library modified to work with ESP32
+
+    Modified by: Dario Bocchino
+
+esp_adc_cal_get_voltage will return voltage in mV, made of offset and ac voltage. 
+Will not return a value between 0 and 4096 (12bit).
+
+About ADC and precision:
+Sensor accuracy is rated 1%
+To reduce ADC error the device on startup will check for calibrated values (my device 
+was not lucky), if they are not burned will use DEFAULT_VREF.
+Then will calculate a characteristic curve to reduce Vref drift, and will  use 
+function esp_adc_cal_raw_to_voltage to use it. 
+Channel's attenuation was selected to stay between recommended voltages for adc
+(150 to 2450mV for 11db).
+
+Possible improvements:
+Use adc2_vref_to_gpio() to obtain a better estimate
+
+>>>WILL NOT WORK WITH ARDUINO
+
+Original version:
   Emon.cpp - Library for openenergymonitor
   Created by Trystan Lea, April 27 2010
   GNU GPL
@@ -36,7 +57,7 @@ double realPower,apparentPower,powerFactor,Vrms,Irms;
 double offsetV=1620;
 double offsetI=1620;
 
-//next two functions will check for calibration values
+//next two functions will check for calibration values burned into ESP32
 static void check_efuse()
 {
     //Check TP is burned into eFuse
@@ -76,15 +97,18 @@ void app_main ()
     adc1_config_channel_atten(inPinI,ADC_ATTEN_11db); //11db full range 3.9V or VDD, recommended range 150 to 2450mV
     adc1_config_channel_atten(inPinV,ADC_ATTEN_11db); //11db full range 3.9V or VDD, recommended range 150 to 2450mV
 
-    //Characterize ADC                                      Next three lines will create a curve to reduce VREF drift (see ESP32 documentation)
+    //Characterize ADC                                      
+    //Next three lines will create a curve to reduce VREF drift (see ESP32 documentation)
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_11db, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
     print_char_val_type(val_type);
 
 
     while(1){
+        //call VI function
         calcVI(1480,2000,&offsetV,&offsetI,adc_chars,&realPower,&apparentPower,&powerFactor,&Vrms,&Irms); //samples,timeout
 
+        //print VI function outputs
         printf("realPower: %.3f \t", realPower);
         printf("apparentPower: %.3f \t", apparentPower);
         printf("Vrms: %.3f \t", Vrms);
@@ -93,10 +117,16 @@ void app_main ()
         printf("Irms_pure: %f \t", Irms/ICAL);
         printf("powerFactor: %.3f \n", powerFactor);
 
-        vTaskDelay(1000 / portTICK_RATE_MS);    //repeat every 1 seconds.
-    }
-    
-    //xTaskCreate(&Lettura_ADC,"Lettura_ADC",2048,NULL,5,NULL); //create the task will convert and elaborate input signal
-    //xTaskCreate(&Emon_Method_ADC,"Emon_Method_ADC",2048,NULL,5,NULL); //create the task will convert and elaborate input signal
+        vTaskDelay(1000 / portTICK_RATE_MS);    //wait 1 seconds.
+
+        //call I function
+        calcI(1480,&offsetI,adc_chars,&Irms);
+
+        //print I funtion outputs
+        printf(" Irms: %.3f \t", Irms);
+        printf(" Irms_pure: %f \n", Irms/ICAL);
+                
+        vTaskDelay(1000 / portTICK_RATE_MS);    //wait 1 second ad repeat.
+    }//end while(1)
 
 }//end app_main
