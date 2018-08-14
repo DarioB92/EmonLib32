@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := emontest
+PROJECT_NAME := EmonLib32
 
 include $(IDF_PATH)/make/project.mk
 
